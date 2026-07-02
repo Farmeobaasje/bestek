@@ -3,6 +3,31 @@
 // ──────────────────────────────────────────────
 
 import type { TourStep } from "../components/GuidedTour/types";
+import type { WizardStep } from "../hooks/useWizard";
+import type { ArchitectureAnalysis } from "../models/architectureAnalysis";
+
+// ── Declarative Demo Script ───────────────────
+
+export type DemoScriptAction =
+  | { action: "ask"; topic: string }
+  | { action: "answer"; text: string }
+  | { action: "goto"; step: WizardStep }
+  | { action: "run-architecture" }
+  | { action: "pause"; duration: number }
+  | { action: "complete" };
+
+export type DemoScript = DemoScriptAction[];
+
+// ── Playback phases ───────────────────────────
+
+export type DemoPlaybackPhase =
+  | "idle"
+  | "welcome"
+  | "playing"
+  | "paused"
+  | "complete";
+
+// ── Demo Scenario ─────────────────────────────
 
 export interface DemoScenario {
   id: string;
@@ -17,6 +42,10 @@ export interface DemoScenario {
     tagline: string;
   };
   interview: DemoInterviewStep[];
+  /** Declarative playback script */
+  script: DemoScript;
+  /** Pre-canned architecture result (avoids LLM call during demo) */
+  demoArchitecture?: ArchitectureAnalysis;
   /** Legacy tooltips — kept for backward compatibility */
   tooltips: DemoStepTooltip[];
   /** Guided Tour steps for premium onboarding experience */
@@ -47,8 +76,10 @@ export interface DemoStepTooltip {
 
 export type SessionMode = "live" | "demo";
 
+// ── Playback state (owned by useDemoPlayback) ─
+
 export interface DemoPlaybackState {
-  isPlaying: boolean;
-  isPaused: boolean;
-  currentStepIndex: number;
+  phase: DemoPlaybackPhase;
+  currentScriptIndex: number;
+  speed: 1 | 2 | 4;
 }

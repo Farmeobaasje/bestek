@@ -1,149 +1,203 @@
 // ──────────────────────────────────────────────
-// GuidedTourProvider — State machine orchestrator
-// Manages tour steps, welcome/completion cards,
-// pause/resume, and highlight targets
+// GuidedTourProvider — Tour state machine orchestrator
+// Manages tour lifecycle: welcome → steps → completion
+// Integrates with demo playback via currentDemoStepIndex
+//
+// Flow:
+//   1. Welcome card appears
+//   2. User clicks "Start walkthrough" → shows first tour card
+//   3. User clicks "Watch the Demo" → starts scripted playback
+//   4. Tour cards hide during playback
+//   5. After all 11 topics complete → completion card
+//   6. User clicks "Continue to Project Overview" → navigates to step 4
 // ──────────────────────────────────────────────
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import type { TourStep, TourHighlightTarget, TourState } from "./types";
-import TourStepCard from "./TourStep";
-import TourProgress from "./TourProgress";
+import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
+import type { TourStep, TourState, GuidedTourConfig } from "./types";
+import TourStepComponent from "./TourStep";
 import TourHighlight from "./TourHighlight";
 import WelcomeCard from "./WelcomeCard";
 import CompletionCard from "./CompletionCard";
 
 interface GuidedTourProviderProps {
-  /** Tour steps configuration */
-  steps: TourStep[];
+  /** Tour configuration */
+  config: GuidedTourConfig;
   /** Project name for welcome/completion cards */
   projectName: string;
   /** Project tagline for welcome card */
   projectTagline: string;
-  /** Number of interview topics (for completion card) */
-  topicCount: number;
-  /** Current demo step index (0-based) */
+  /** Current demo step index (0-based) — used to trigger tour steps */
   currentDemoStepIndex: number;
-  /** Whether demo is currently playing */
-  isDemoPlaying: boolean;
-  /** Whether demo is paused */
-  isDemoPaused: boolean;
-  /** Whether the interview is complete */
-  isInterviewComplete: boolean;
-  /** Whether demo mode is active */
-  isDemo: boolean;
-  /** Callback to pause demo playback */
-  onPauseDemo: () => void;
-  /** Callback to resume demo playback */
+  /** Whether the demo interview is complete */
+  interviewComplete: boolean;
+  /** Called when user clicks "Start walkthrough" on welcome card */
+  onStartWalkthrough: () => void;
+  /** Called when user clicks "Watch the Demo" on the first tour step */
+  onStartDemo: () => void;
+  /** Called when user clicks action button on non-first tour steps */
   onResumeDemo: () => void;
-  /** Callback to exit demo */
+  /** Called when user exits the demo */
   onExitDemo: () => void;
-  /** Callback to continue to summary */
-  onContinue: () => void;
-  /** Children (the actual demo UI) */
-  children: React.ReactNode;
+  /** Called when user clicks "Finish the demo" on the last tour step */
+  onFinishDemo?: () => void;
+  /** Called when user clicks "Continue to Project Overview" on the completion card */
+  onContinue?: () => void;
+  /** Number of topics covered (for completion card) */
+  topicCount: number;
+  /** Children — the actual UI content */
+  children: ReactNode;
+  /** When true, auto-dismiss welcome/completion cards after a delay */
+  autoAdvance?: boolean;
+  /** Whether demo playback is currently active (hides tour cards) */
+  isDemoPlaying?: boolean;
 }
 
 export default function GuidedTourProvider({
-  steps,
+  config,
   projectName,
   projectTagline,
-  topicCount,
   currentDemoStepIndex,
-  isDemoPlaying,
-  isDemoPaused,
-  isInterviewComplete,
-  isDemo,
-  onPauseDemo,
+  interviewComplete,
+  onStartWalkthrough,
+  onStartDemo,
   onResumeDemo,
   onExitDemo,
+  onFinishDemo,
   onContinue,
+  topicCount,
   children,
+  autoAdvance = false,
+  isDemoPlaying = false,
 }: GuidedTourProviderProps) {
   const [tourState, setTourState] = useState<TourState>({
-    isActive: true,
+    isActive: config.autoStart,
     currentStepIndex: 0,
-    showWelcome: true,
+    showWelcome: config.autoStart,
     showCompletion: false,
     isPaused: false,
   });
 
   // Track which steps have been shown to prevent re-triggering
   const shownStepsRef = useRef<Set<number>>(new Set());
-  // Track whether we've already triggered completion
-  const completionShownRef = useRef(false);
 
-  // Current tour step (if any is active)
-  const currentStep: TourStep | null =
-    tourState.isActive && !tourState.showWelcome && !tourState.showCompletion
-      ? steps[tourState.currentStepIndex] ?? null
-      : null;
+  // ── Auto-advance welcome ────────────────────
+  // When autoAdvance is true, dismiss welcome after 2s
+  useEffect(() => {
+    if (!autoAdvance || !tourState.showWelcome) return;
 
-  // Highlight target based on current step
-  const highlightTarget: TourHighlightTarget = currentStep?.highlightTarget ?? null;
+    const timer = setTimeout(() => {
+      setTourState((prev) => ({
+        ...prev,
+        showWelcome: false,
+        isPaused: false,
+      }));
+      onStartWalkthrough();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [autoAdvance, tourState.showWelcome, onStartWalkthrough]);
+
+  // ── Auto-advance completion ─────────────────
+  // When autoAdvance is true, dismiss completion after 2s
+  useEffect(() => {
+    if (!autoAdvance || !tourState.showCompletion) return;
+
+    const timer = setTimeout(() => {
+      setTourState((prev) => ({
+        ...prev,
+        showCompletion: false,
+        isPaused: false,
+      }));
+      onContinue?.();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [autoAdvance, tourState.showCompletion, onContinue]);
 
   // ── Step trigger logic ──────────────────────
-  // Checks if a tour step should appear based on demo step index
+  // Watch currentDemoStepIndex and trigger tour steps when
+  // the interview reaches the triggerAfterStep threshold.
+  // Only triggers when demo is NOT playing (tour cards hidden during playback).
   useEffect(() => {
-    if (!isDemo || !tourState.isActive || tourState.showWelcome || tourState.showCompletion) return;
-    if (!isDemoPlaying || isDemoPaused) return;
-    if (isInterviewComplete) return;
+    if (!tourState.isActive || tourState.showWelcome || tourState.showCompletion) return;
+    if (isDemoPlaying) return; // Don't trigger tour steps during playback
 
-    // Find a step that triggers at this demo step and hasn't been shown yet
-    const pendingStepIndex = steps.findIndex(
-      (s, i) => s.triggerAfterStep === currentDemoStepIndex && !shownStepsRef.current.has(i)
-    );
+    const steps = config.steps;
+    if (steps.length === 0) return;
 
-    if (pendingStepIndex === -1) return;
+    // Find the next step to trigger based on currentDemoStepIndex
+    const nextStepIndex = steps.findIndex((step, i) => {
+      return (
+        i > tourState.currentStepIndex &&
+        !shownStepsRef.current.has(i) &&
+        currentDemoStepIndex >= step.triggerAfterStep
+      );
+    });
 
-    // Mark as shown
-    shownStepsRef.current.add(pendingStepIndex);
-
-    // Pause demo and show the step
-    onPauseDemo();
-    setTourState((prev) => ({
-      ...prev,
-      currentStepIndex: pendingStepIndex,
-      isPaused: true,
-    }));
-  }, [isDemo, isDemoPlaying, isDemoPaused, isInterviewComplete, currentDemoStepIndex, steps, tourState.isActive, tourState.showWelcome, tourState.showCompletion, onPauseDemo]);
+    if (nextStepIndex !== -1) {
+      shownStepsRef.current.add(nextStepIndex);
+      setTourState((prev) => ({
+        ...prev,
+        currentStepIndex: nextStepIndex,
+        isPaused: true,
+      }));
+    }
+  }, [currentDemoStepIndex, tourState.isActive, tourState.showWelcome, tourState.showCompletion, tourState.currentStepIndex, config.steps, isDemoPlaying]);
 
   // ── Completion trigger ──────────────────────
+  // Show completion card when interview is complete
   useEffect(() => {
-    if (!isDemo || !isInterviewComplete || completionShownRef.current) return;
-    if (!tourState.isActive) return;
+    if (interviewComplete && tourState.isActive && !tourState.showCompletion) {
+      setTourState((prev) => ({
+        ...prev,
+        showCompletion: true,
+        isPaused: true,
+      }));
+    }
+  }, [interviewComplete, tourState.isActive, tourState.showCompletion]);
 
-    completionShownRef.current = true;
-    setTourState((prev) => ({
-      ...prev,
-      showCompletion: true,
-      isPaused: true,
-    }));
-  }, [isDemo, isInterviewComplete, tourState.isActive]);
-
-  // ── Handlers ────────────────────────────────
-
-  const handleWelcomeStart = useCallback(() => {
-    setTourState((prev) => ({
-      ...prev,
-      showWelcome: false,
-    }));
-    // Demo will auto-start via the existing InterviewStep logic
-  }, []);
-
-  const handleWelcomeExit = useCallback(() => {
-    onExitDemo();
-  }, [onExitDemo]);
-
+  // ── Action handler ──────────────────────────
+  // Called when user clicks the action button on a tour step
   const handleStepAction = useCallback(() => {
-    // Resume demo playback
-    onResumeDemo();
-    setTourState((prev) => ({
-      ...prev,
-      isPaused: false,
-    }));
-  }, [onResumeDemo]);
+    const steps = config.steps;
+    const currentStep = steps[tourState.currentStepIndex];
 
-  const handleSkipTour = useCallback(() => {
+    if (!currentStep) return;
+
+    const isFirstStep = tourState.currentStepIndex === 0;
+    const isLastStep = tourState.currentStepIndex >= steps.length - 1;
+
+    if (isFirstStep) {
+      // First step — "Watch the Demo" — start the full demo playback
+      onStartDemo();
+      setTourState((prev) => ({
+        ...prev,
+        isPaused: false,
+      }));
+    } else if (isLastStep) {
+      // Last step — "Finish the demo" — only valid if interview is complete
+      if (interviewComplete) {
+        onFinishDemo?.();
+        setTourState((prev) => ({
+          ...prev,
+          isPaused: false,
+        }));
+      }
+    } else {
+      // Middle steps — resume demo playback briefly
+      onResumeDemo();
+
+      // Advance to the next tour step
+      setTourState((prev) => ({
+        ...prev,
+        currentStepIndex: prev.currentStepIndex + 1,
+        isPaused: false,
+      }));
+    }
+  }, [config.steps, tourState.currentStepIndex, tourState.currentStepIndex === 0, onStartDemo, onResumeDemo, onFinishDemo, interviewComplete]);
+
+  // ── Skip handler ────────────────────────────
+  const handleSkip = useCallback(() => {
     setTourState((prev) => ({
       ...prev,
       isActive: false,
@@ -151,58 +205,86 @@ export default function GuidedTourProvider({
       showCompletion: false,
       isPaused: false,
     }));
-    // Resume demo if it was paused
-    if (isDemoPaused) {
-      onResumeDemo();
-    }
-  }, [isDemoPaused, onResumeDemo]);
+  }, []);
 
-  const handleCompletionContinue = useCallback(() => {
-    onContinue();
-  }, [onContinue]);
+  // ── Welcome handlers ────────────────────────
+  const handleStartWalkthrough = useCallback(() => {
+    setTourState((prev) => ({
+      ...prev,
+      showWelcome: false,
+      isPaused: false,
+    }));
+    // Do NOT start demo playback here — just show the first tour card
+  }, []);
 
-  const handleCompletionExit = useCallback(() => {
+  const handleExitFromWelcome = useCallback(() => {
+    setTourState((prev) => ({
+      ...prev,
+      isActive: false,
+      showWelcome: false,
+      isPaused: false,
+    }));
     onExitDemo();
   }, [onExitDemo]);
 
-  // ── Render ──────────────────────────────────
+  // ── Completion handlers ─────────────────────
+  const handleContinueFromCompletion = useCallback(() => {
+    setTourState((prev) => ({
+      ...prev,
+      showCompletion: false,
+      isPaused: false,
+    }));
+    onContinue?.();
+  }, [onContinue]);
+
+  const handleExitFromCompletion = useCallback(() => {
+    setTourState((prev) => ({
+      ...prev,
+      isActive: false,
+      showCompletion: false,
+      isPaused: false,
+    }));
+    onExitDemo();
+  }, [onExitDemo]);
+
+  // ── Current step ────────────────────────────
+  // Hide tour cards during demo playback
+  const showTourCards = !isDemoPlaying;
+  const currentStep: TourStep | null =
+    tourState.isActive &&
+    !tourState.showWelcome &&
+    !tourState.showCompletion &&
+    showTourCards &&
+    config.steps[tourState.currentStepIndex]
+      ? config.steps[tourState.currentStepIndex]
+      : null;
 
   return (
     <>
-      {/* Tour progress indicator (top-left, always visible during active tour) */}
-      {isDemo && tourState.isActive && !tourState.showWelcome && !tourState.showCompletion && (
-        <div className="fixed top-3 left-3 z-[65]">
-          <TourProgress
-            currentStep={tourState.currentStepIndex + 1}
-            totalSteps={steps.length}
-            stepTitles={steps.map((s) => s.title)}
-          />
-        </div>
-      )}
+      {/* Main content */}
+      {children}
 
-      {/* Welcome card */}
-      {isDemo && tourState.showWelcome && (
+      {/* Welcome overlay */}
+      {tourState.showWelcome && (
         <WelcomeCard
           projectName={projectName}
           projectTagline={projectTagline}
-          onStart={handleWelcomeStart}
-          onExit={handleWelcomeExit}
+          onStart={handleStartWalkthrough}
+          onExit={handleExitFromWelcome}
         />
       )}
 
-      {/* Completion card */}
-      {isDemo && tourState.showCompletion && (
-        <CompletionCard
-          projectName={projectName}
-          topicCount={topicCount}
-          onContinue={handleCompletionContinue}
-          onExit={handleCompletionExit}
+      {/* Tour highlight overlay */}
+      {currentStep && (
+        <TourHighlight
+          target={currentStep.highlightTarget}
+          isVisible={true}
         />
       )}
 
       {/* Tour step card */}
       {currentStep && (
-        <TourStepCard
+        <TourStepComponent
           stepNumber={currentStep.stepNumber}
           totalSteps={currentStep.totalSteps}
           title={currentStep.title}
@@ -210,20 +292,19 @@ export default function GuidedTourProvider({
           position={currentStep.position}
           actionLabel={currentStep.actionLabel}
           onAction={handleStepAction}
-          onSkip={handleSkipTour}
+          onSkip={handleSkip}
         />
       )}
 
-      {/* UI highlight overlay */}
-      {currentStep && (
-        <TourHighlight
-          target={highlightTarget}
-          visible={true}
+      {/* Completion overlay */}
+      {tourState.showCompletion && (
+        <CompletionCard
+          projectName={projectName}
+          topicCount={topicCount}
+          onContinue={handleContinueFromCompletion}
+          onExit={handleExitFromCompletion}
         />
       )}
-
-      {/* Main content (the demo UI) */}
-      {children}
     </>
   );
 }

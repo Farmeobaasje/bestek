@@ -16,6 +16,9 @@
 import { buildArchitectPrompt } from "../ai/architect/architectPrompts";
 import type { ProjectRequirements } from "../models/projectRequirements";
 import type { ProjectDefinition } from "../types/projectDefinition";
+import type { ConfidenceLevel } from "../models/conversationMemory";
+import type { ComplexityLevel } from "../models/architectureAnalysis";
+
 
 // ── Fixture: BioBatch Sentinel (biotech lab platform) ──
 // This fixture simulates a fully populated project to test
@@ -278,19 +281,22 @@ describe("buildArchitectPrompt — without enriched definition", () => {
 
 describe("buildArchitectPrompt — with conversation memory", () => {
   it("includes conversation context when memory is provided", () => {
+    const now = "2026-01-01T00:00:00.000Z";
     const memory = {
       id: "mem-1",
-      createdAt: "2026-01-01T00:00:00.000Z",
-      updatedAt: "2026-01-01T00:00:00.000Z",
+      createdAt: now,
+      updatedAt: now,
       messages: [],
       questions: [
-        { id: "q1", question: "What is the target audience?", answer: "Lab technicians and QC managers", topic: "users", skipped: false, confidence: "high" as const, createdAt: "2026-01-01T00:00:00.000Z", answeredAt: "2026-01-01T00:00:00.000Z" },
+        { id: "q1", question: "What is the target audience?", answer: "Lab technicians and QC managers", topic: "users", confidence: "high" as ConfidenceLevel, skipped: false, createdAt: now, answeredAt: now },
       ],
+
       decisions: [],
       assumptions: [],
       rejectedIdeas: [],
       openQuestions: [],
-      confidence: "high" as const,
+      confidence: "high" as ConfidenceLevel,
+
     };
 
     const prompt = buildArchitectPrompt(biobatchRequirements, memory, undefined, undefined, biobatchEnriched);
@@ -324,7 +330,8 @@ describe("buildArchitectPrompt — with existing analysis", () => {
       unknowns: ["Some open question"],
       suggestedStack: { frontend: "", backend: "", database: "", infrastructure: "", ai: "", testing: "", monitoring: "" },
       suggestedArchitecture: "",
-      estimatedComplexity: "medium" as const,
+      estimatedComplexity: "medium" as ComplexityLevel,
+
       estimatedTimeline: "",
       confidence: 30,
     };

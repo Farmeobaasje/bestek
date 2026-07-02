@@ -4,7 +4,7 @@
 // ──────────────────────────────────────────────
 
 import { useState, useCallback } from "react";
-import type { SessionMode, DemoScenario, DemoPlaybackState } from "../demo/types";
+import type { SessionMode, DemoScenario } from "../demo/types";
 
 export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -38,14 +38,9 @@ interface UseWizardReturn {
   // Session mode
   sessionMode: SessionMode;
   startDemo: (scenario: DemoScenario) => void;
+  startLiveSession: () => void;
   stopDemo: () => void;
-  pauseDemo: () => void;
-  resumeDemo: () => void;
-  isPlaying: boolean;
-  isPaused: boolean;
   activeDemo: DemoScenario | null;
-  demoPlayback: DemoPlaybackState;
-  setDemoPlayback: (state: DemoPlaybackState) => void;
 }
 
 export function useWizard(): UseWizardReturn {
@@ -53,11 +48,6 @@ export function useWizard(): UseWizardReturn {
   const [canGoNext, setCanGoNext] = useState(true);
   const [sessionMode, setSessionMode] = useState<SessionMode>("live");
   const [activeDemo, setActiveDemo] = useState<DemoScenario | null>(null);
-  const [demoPlayback, setDemoPlayback] = useState<DemoPlaybackState>({
-    isPlaying: false,
-    isPaused: false,
-    currentStepIndex: 0,
-  });
 
   const goTo = useCallback((step: WizardStep) => {
     setCurrentStep(step);
@@ -74,31 +64,19 @@ export function useWizard(): UseWizardReturn {
   const startDemo = useCallback((scenario: DemoScenario) => {
     setSessionMode("demo");
     setActiveDemo(scenario);
-    setDemoPlayback({
-      isPlaying: true,
-      isPaused: false,
-      currentStepIndex: 0,
-    });
     setCurrentStep(2);
   }, []);
 
   const stopDemo = useCallback(() => {
     setSessionMode("live");
     setActiveDemo(null);
-    setDemoPlayback({
-      isPlaying: false,
-      isPaused: false,
-      currentStepIndex: 0,
-    });
     setCurrentStep(1);
   }, []);
 
-  const pauseDemo = useCallback(() => {
-    setDemoPlayback((prev) => ({ ...prev, isPaused: true }));
-  }, []);
-
-  const resumeDemo = useCallback(() => {
-    setDemoPlayback((prev) => ({ ...prev, isPaused: false }));
+  const startLiveSession = useCallback(() => {
+    setSessionMode("live");
+    setActiveDemo(null);
+    setCurrentStep(2);
   }, []);
 
   return {
@@ -113,13 +91,8 @@ export function useWizard(): UseWizardReturn {
     // Session mode
     sessionMode,
     startDemo,
+    startLiveSession,
     stopDemo,
-    pauseDemo,
-    resumeDemo,
-    isPlaying: demoPlayback.isPlaying,
-    isPaused: demoPlayback.isPaused,
     activeDemo,
-    demoPlayback,
-    setDemoPlayback,
   };
 }

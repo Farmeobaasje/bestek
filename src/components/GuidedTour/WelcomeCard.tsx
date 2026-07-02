@@ -18,6 +18,7 @@ export default function WelcomeCard({
   onStart,
   onExit,
 }: WelcomeCardProps) {
+
   const [isEntered, setIsEntered] = useState(false);
 
   useEffect(() => {

@@ -18,7 +18,8 @@ import { createEmptyProjectRequirements, type ProjectRequirements } from "../mod
 import { buildRequirements } from "../orchestrator/requirementsBuilder";
 import { deterministicGenerate } from "../generator";
 import { generateDocumentationFiles } from "../lib/docsGenerator";
-import { buildRenderModel } from '../generator/renderModel'
+import { buildRenderModel } from "../generator/renderModel";
+
 import { createEmptyArchitectureAnalysis } from "../models/architectureAnalysis";
 import { defaultProjectDefinition } from "../types/projectDefinition";
 

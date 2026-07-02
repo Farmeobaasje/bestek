@@ -24,25 +24,24 @@ import type { ProjectDefinition } from "../types/projectDefinition";
 
 // ── Helper: create a minimal CanonicalExtractionResult ──
 
-function makeCanonicalResult(overrides: {
-  identity: { domainLabel: string; domainCategory?: string; projectName?: string; templateId?: string };
-  overallConfidence?: number;
-}): CanonicalExtractionResult {
+function makeCanonicalResult(overrides: Partial<CanonicalExtractionResult>): CanonicalExtractionResult {
+  const identity = overrides.identity!;
+
   const base: CanonicalExtractionResult = {
     identity: {
-      projectName: overrides.identity.projectName || "Test Project",
-      domainLabel: overrides.identity.domainLabel,
-      domainCategory: overrides.identity.domainCategory || "software",
+      projectName: identity.projectName || "Test Project",
+      domainLabel: identity.domainLabel,
+      domainCategory: identity.domainCategory || "software",
       domain: {
-        id: overrides.identity.domainLabel.toLowerCase().replace(/\s+/g, "-"),
+        id: identity.domainLabel.toLowerCase().replace(/\s+/g, "-"),
         scores: {},
-        evidence: [`LLM classified as "${overrides.identity.domainLabel}"`],
+        evidence: [`LLM classified as "${identity.domainLabel}"`],
         confidence: 85,
         source: "llm",
       },
       projectType: "software",
       category: "software",
-      templateId: overrides.identity.templateId || "",
+      templateId: identity.templateId || "",
       confidence: 85,
       source: "llm",
     },
@@ -107,7 +106,7 @@ const AEROTRACER_LLM: CanonicalExtractionResult = makeCanonicalResult({
     projectName: "AeroTracer",
     domainLabel: "aerospace digital twin",
     domainCategory: "industrial_analytics",
-  },
+  } as any,
   overallConfidence: 88,
 });
 
@@ -120,7 +119,7 @@ const DOCKMIND_LLM: CanonicalExtractionResult = makeCanonicalResult({
     projectName: "DockMind",
     domainLabel: "warehouse orchestration platform",
     domainCategory: "logistics",
-  },
+  } as any,
   overallConfidence: 87,
 });
 
@@ -133,7 +132,7 @@ const CLAUSEPILOT_LLM: CanonicalExtractionResult = makeCanonicalResult({
     projectName: "ClausePilot",
     domainLabel: "legal contract review platform",
     domainCategory: "legal",
-  },
+  } as any,
   overallConfidence: 86,
 });
 
@@ -147,7 +146,7 @@ const HELPPILOT_LLM: CanonicalExtractionResult = makeCanonicalResult({
     domainLabel: "AI-powered support platform",
     domainCategory: "ai_saas",
     templateId: "ai-saas/support-platform",
-  },
+  } as any,
   overallConfidence: 90,
 });
 

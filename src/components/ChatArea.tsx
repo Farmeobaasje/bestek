@@ -35,8 +35,12 @@ interface Props {
   typingContext?: TypingContext | null;
   /** Demo mode: text being typed by the demo playback engine */
   demoAnswer?: string;
-  /** Current active topic for placeholder adaptation */
+  /** Current active topic for placeholder derivation */
   activeTopic?: string | null;
+  /** When true, the current topic is the last one — show "Complete & Analyze →" label */
+  isLastTopic?: boolean;
+  /** Called after sendAnswer resolves when isLastTopic is true and completion is confirmed */
+  onComplete?: () => void;
 }
 
 function derivePlaceholder(activeTopic: string | null | undefined, fallback: string): string {
@@ -57,6 +61,8 @@ export default function ChatArea({
   typingContext = null,
   activeTopic = null,
   demoAnswer,
+  isLastTopic = false,
+  onComplete,
 }: Props) {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -79,11 +85,17 @@ export default function ChatArea({
     }
   }, [input]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed || disabled || isLoading) return;
     onSend(trimmed);
     setInput("");
+    // When on the last topic, signal completion after the answer is submitted
+    if (isLastTopic && onComplete) {
+      // Small delay to let the interview engine process and set interviewComplete
+      await new Promise((r) => setTimeout(r, 100));
+      onComplete();
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -164,16 +176,24 @@ export default function ChatArea({
               </button>
             )}
 
-            {/* Send button */}
+            {/* Send / Complete & Analyze button */}
             <button
               onClick={handleSend}
               disabled={!input.trim() || disabled || isLoading}
-              className="btn-primary px-5 py-3"
+              className={isLastTopic ? "btn-primary px-5 py-3 bg-success hover:bg-success/90" : "btn-primary px-5 py-3"}
             >
-              <span>Send</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
+              {isLastTopic ? (
+                <>
+                  <span>Complete & Analyze →</span>
+                </>
+              ) : (
+                <>
+                  <span>Send</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </>
+              )}
             </button>
           </div>
         </div>

@@ -66,11 +66,6 @@ export function generatePreviewFiles(pd: ProjectDefinition): GeneratedFile[] {
     });
   }
 
-  // If validation errors block generation, stop here
-  if (!validationResult.valid) {
-    return files;
-  }
-
   // ── .clinerules/* (via clinerulesGenerator) ─
   files.push(...generateClinerulesFiles(resolved, rm));
 

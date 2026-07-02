@@ -1,12 +1,18 @@
 // ──────────────────────────────────────────────
 // App — VibeForge 6-step wizard
 // Describe → Interview → Architecture Review → Summary → Generate → Export
+//
+// Demo playback wiring:
+//   App.tsx owns the useDemoPlayback hook and translates
+//   DemoScriptAction into real application calls via onAction.
+//   The playback controller has zero knowledge of application state.
 // ──────────────────────────────────────────────
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useProjectDefinition } from "./hooks/useProjectDefinition";
 import { useProjectRequirements } from "./hooks/useProjectRequirements";
 import { useWizard } from "./hooks/useWizard";
+import { useDemoPlayback } from "./demo/useDemoPlayback";
 import { deterministicGenerate } from "./generator";
 import { loadConversationMemory } from "./lib/conversationMemoryStorage";
 import { loadProjectRequirements } from "./lib/projectRequirementsStorage";
@@ -28,6 +34,7 @@ import ExportStep from "./components/ExportStep";
 import AISettings from "./components/AISettings";
 import GeneralSettings from "./components/GeneralSettings";
 import { BIOBATCH_SENTINEL_DEMO } from "./demo/biobatchSentinel";
+import type { DemoScriptAction } from "./demo/types";
 
 export default function App() {
   const {
@@ -42,35 +49,30 @@ export default function App() {
   const { resetRequirements } = useProjectRequirements();
 
   const wizard = useWizard();
+  const demoPlayback = useDemoPlayback();
   const [showAISettings, setShowAISettings] = useState(false);
   const [showGeneralSettings, setShowGeneralSettings] = useState(false);
   const [rawIdea, setRawIdea] = useState<string>("");
   const [settingsTab, setSettingsTab] = useState<"endpoints" | "api-keys">("endpoints");
   const [settingsFocusEndpoint, setSettingsFocusEndpoint] = useState<string | undefined>(undefined);
+  const [autoAnalyze, setAutoAnalyze] = useState(false);
+
+  // ── Demo action handler refs ────────────────
+  // InterviewStep exposes sendAnswer and startInterview via ref callbacks.
+  // We store them here so the demo action handler can call them.
+  const sendAnswerRef = useRef<((answer: string) => Promise<void>) | null>(null);
+  const startInterviewRef = useRef<(() => Promise<void>) | null>(null);
 
   // ── Theme init ──────────────────────────────
-  // Apply saved theme on mount and listen for system changes.
   useEffect(() => {
     const theme = loadTheme();
     applyTheme(theme);
     return listenForSystemThemeChanges();
   }, []);
 
-  // ── Generator sync: ConversationMemory + ProjectRequirements + ArchitectureAnalysis → ProjectDefinition ──
-  //
-  // IMPORTANT: In the normal interview flow, we do NOT pass `existing` to the generator.
-  // This ensures the generator starts from `defaultProjectDefinition` and only fills
-  // fields that have actual data from the current session. Passing `existing` would
-  // cause stale data from previous sessions (e.g. TeamFlow AI) to leak through.
-  //
-  // Only pass `existing` when doing explicit "Advanced Editing" or "Update Project" workflows.
-
+  // ── Generator sync ──────────────────────────
   const syncWithGenerator = useCallback(
     async (includeAnalysis: boolean = false) => {
-      // Read BOTH memory and requirements from localStorage to guarantee
-      // we always have the latest data, regardless of React's render cycle.
-      // This prevents stale closure issues where requirements in the hook
-      // might not yet reflect the most recent interview answers.
       const memory = loadConversationMemory();
       const req = loadProjectRequirements();
       const analysis = includeAnalysis ? loadArchitectureAnalysis() : createEmptyArchitectureAnalysis();
@@ -79,7 +81,6 @@ export default function App() {
         memory,
         requirements: req,
         architecture: analysis,
-        // NOTE: `existing` is intentionally omitted — see comment above
       });
 
       updateProjectDefinition(result.projectDefinition);
@@ -91,32 +92,123 @@ export default function App() {
     [updateProjectDefinition],
   );
 
-  /**
-   * Full workspace reset — wipes ALL state and starts fresh.
-   * This is the only way to guarantee no stale data leaks between projects.
-   */
+  // ── Demo action handler ─────────────────────
+  // Translates DemoScriptAction into real application calls.
+  // This is the bridge between the virtual user and the real workflow.
+  const handleDemoAction = useCallback(
+    async (action: DemoScriptAction) => {
+      switch (action.action) {
+        case "ask": {
+          // The "ask" action just advances the script — the interview engine
+          // already handles question generation. We just need to wait for
+          // the question to appear, then the next "answer" action will respond.
+          demoPlayback.next();
+          break;
+        }
+
+        case "answer": {
+          // Use the typing controller to simulate character-by-character typing,
+          // then call sendAnswer when done.
+          const sendAnswer = sendAnswerRef.current;
+          if (!sendAnswer) {
+            // Fallback: just advance without typing
+            demoPlayback.next();
+            break;
+          }
+
+          // Start typing animation — the InterviewStep listens to demoPlayback.typing
+          // and renders the typed text via demoAnswerText.
+          demoPlayback.typing.start(
+            action.text,
+            () => {
+              // onChar — InterviewStep reads demoPlayback.typing state
+              // We don't need to do anything here; the component polls via render
+            },
+            () => {
+              // onDone — send the answer and advance
+              sendAnswer(action.text).then(() => {
+                demoPlayback.next();
+              });
+            },
+          );
+          break;
+        }
+
+        case "goto": {
+          wizard.goTo(action.step);
+          demoPlayback.next();
+          break;
+        }
+
+        case "run-architecture": {
+          // The ArchitectureInsightsStep has autoRun prop — it will auto-trigger
+          // when it mounts. We just navigate there.
+          wizard.goTo(3);
+          demoPlayback.next();
+          break;
+        }
+
+        case "pause": {
+          // Wait for the specified duration, then advance
+          setTimeout(() => {
+            demoPlayback.next();
+          }, action.duration);
+          break;
+        }
+
+        case "complete": {
+          // Do NOT call demoPlayback.exit() — that resets everything.
+          // The completion card is shown by GuidedTourProvider when
+          // interviewComplete becomes true (driven by useInterview).
+          // Just leave the playback in its current state.
+          // The user clicks "Continue to Project Overview" to navigate.
+          break;
+        }
+      }
+    },
+    [demoPlayback, wizard],
+  );
+
+  // ── Process script actions on phase change ──
+  // When playback enters "playing" phase, start processing actions.
+  // Uses a lastProcessedIndexRef to ensure each script index is
+  // processed exactly once — prevents re-processing on re-renders
+  // caused by typing state updates (setTypingText → re-render →
+  // new currentAction object reference → effect re-fire).
+  const lastProcessedIndexRef = useRef(-1);
+  useEffect(() => {
+    if (demoPlayback.state.phase !== "playing") return;
+
+    const idx = demoPlayback.state.currentScriptIndex;
+    if (lastProcessedIndexRef.current === idx) return;
+    lastProcessedIndexRef.current = idx;
+
+    const action = demoPlayback.currentAction;
+    if (!action) return;
+
+    handleDemoAction(action);
+  }, [demoPlayback.state.phase, demoPlayback.state.currentScriptIndex, handleDemoAction]);
+
+  // ── Start over ──────────────────────────────
   const handleStartOver = useCallback(() => {
-    // 1. Wipe all localStorage keys
     clearAllStorage();
     clearConversationMemory();
     clearProjectRequirements();
     clearArchitectureAnalysis();
     clearWorkspace();
 
-    // 2. Reset all in-memory state
     resetProjectDefinition();
     resetRequirements();
 
-    // 3. Reset local UI state
     setRawIdea("");
+    setAutoAnalyze(false);
 
-    // 4. Go back to Describe step
-    wizard.goTo(1);
+    wizard.stopDemo();
   }, [resetProjectDefinition, resetRequirements, wizard]);
 
   const handleStartInterview = useCallback((idea: string) => {
     setRawIdea(idea);
-    wizard.goTo(2);
+    wizard.startLiveSession();
   }, [wizard]);
 
   const handleOpenSettings = useCallback((tab?: "endpoints" | "api-keys", focusEndpointId?: string) => {
@@ -139,30 +231,39 @@ export default function App() {
   }, []);
 
   // ── Demo mode ───────────────────────────────
-
   const handleStartDemo = useCallback((projectId: string) => {
     if (projectId === "biobatch-sentinel") {
       wizard.startDemo(BIOBATCH_SENTINEL_DEMO);
     }
   }, [wizard]);
 
-  // ── Step transition handlers with deterministic generator sync ──
-
-  const handleInterviewContinue = useCallback(async () => {
-    // Sync without architecture analysis before going to Architecture Review
+  // ── Step transition handlers ────────────────
+  // Called when the Send button on the last topic triggers completion.
+  // Syncs the generator, sets autoAnalyze so ArchitectureInsightsStep
+  // auto-runs its analysis, then advances to step 3.
+  const handleInterviewCompleteViaSend = useCallback(async () => {
     await syncWithGenerator(false);
+    setAutoAnalyze(true);
     wizard.goNext();
   }, [syncWithGenerator, wizard]);
 
   const handleArchitectureContinue = useCallback(async () => {
-    // Sync with architecture analysis before going to Summary
     await syncWithGenerator(true);
     wizard.goNext();
   }, [syncWithGenerator, wizard]);
 
+  // ── Reset autoAnalyze when leaving step 3 ────
+  // Prevents stale autoAnalyze from triggering analysis again
+  // if the user navigates back to step 3 later.
+  useEffect(() => {
+    if (wizard.currentStep !== 3) {
+      setAutoAnalyze(false);
+    }
+  }, [wizard.currentStep]);
+
   return (
     <div className="min-h-screen bg-app text-app">
-      {/* Header with step indicator — hidden on landing page (step 1) */}
+      {/* Header */}
       {wizard.currentStep > 1 && (
         <WizardHeader
           currentStep={wizard.currentStep}
@@ -188,7 +289,7 @@ export default function App() {
         focusEndpointId={settingsFocusEndpoint}
       />
 
-      {/* Main content area — no padding on step 1 (landing page has its own) */}
+      {/* Main content */}
       <main className={wizard.currentStep === 1 ? "" : "max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6"}>
         {/* Step 1: Landing page */}
         {wizard.currentStep === 1 && (
@@ -208,15 +309,26 @@ export default function App() {
             initialContext={rawIdea}
             onBack={wizard.goBack}
             onSkipToSummary={() => wizard.goTo(4)}
-            onContinue={handleInterviewContinue}
+            onContinue={handleInterviewCompleteViaSend}
             onOpenSettings={(tab, endpointId) => handleOpenSettings(tab, endpointId)}
             sessionMode={wizard.sessionMode}
             activeDemo={wizard.activeDemo}
-            demoPlayback={wizard.demoPlayback}
-            setDemoPlayback={wizard.setDemoPlayback}
             onStopDemo={wizard.stopDemo}
-            onPauseDemo={wizard.pauseDemo}
-            onResumeDemo={wizard.resumeDemo}
+            demoPlayback={demoPlayback}
+            onSendAnswerRef={(fn) => { sendAnswerRef.current = fn; }}
+            onStartInterviewRef={(fn) => { startInterviewRef.current = fn; }}
+            onStartDemo={async () => {
+              // Called when user clicks "Watch the Demo" on the first tour card
+              // 1. Start the interview engine first (initializes conversation memory)
+              const startInterview = startInterviewRef.current;
+              if (startInterview) {
+                await startInterview();
+              }
+              // 2. Start the demo playback script (sets phase to "playing")
+              if (demoPlayback && wizard.activeDemo) {
+                demoPlayback.start(wizard.activeDemo.script);
+              }
+            }}
           />
         )}
 
@@ -225,6 +337,8 @@ export default function App() {
           <ArchitectureInsightsStep
             onBack={wizard.goBack}
             onContinue={handleArchitectureContinue}
+            autoRun={wizard.sessionMode === "demo" || autoAnalyze}
+            demoArchitecture={wizard.sessionMode === "demo" ? wizard.activeDemo?.demoArchitecture : undefined}
           />
         )}
 

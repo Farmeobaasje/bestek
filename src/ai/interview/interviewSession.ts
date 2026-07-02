@@ -339,6 +339,85 @@ export async function startNewInterview(
   return buildResult(engineResult, mem, requirements, agentResult);
 }
 
+// ── Core: start a new interview in demo mode (no LLM) ──
+
+/**
+ * Start a new interview session in demo mode.
+ *
+ * This is a lightweight path that:
+ * 1. Creates fresh memory (or clones provided memory)
+ * 2. Runs the Conversation Engine to get the first planned question
+ * 3. Uses the scripted question text from the demo scenario (or generic fallback)
+ * 4. Records it in memory without any LLM call
+ * 5. Runs the Requirements Builder
+ *
+ * No LLM calls, no provider validation, no AI fallback.
+ *
+ * @param memory       - Optional existing memory (if omitted, creates empty)
+ * @param firstQuestionText - The scripted first question text (from demo scenario)
+ * @returns            - The session result with the first question
+ */
+export async function startNewInterviewDemo(
+  memory?: ConversationMemory,
+  firstQuestionText?: string,
+): Promise<InterviewSessionResult> {
+  // ── Step 1: Create fresh memory if needed ──
+  const mem = memory ? cloneMemory(memory) : createEmptyConversationMemory();
+
+  // ── Step 2: Ask Conversation Engine for first question ──
+  const engine = new ConversationEngine();
+  const engineResult = engine.startInterview(mem);
+
+  // ── Step 3: If no first question (shouldn't happen, but handle gracefully) ──
+  if (!engineResult.nextQuestion) {
+    const requirements = buildRequirements(mem);
+    return {
+      done: true,
+      isFollowUp: false,
+      memory: mem,
+      state: engineResult.state,
+      requirements,
+      completion: engineResult.completion,
+    };
+  }
+
+  // ── Step 4: Use scripted question text (or fall back to generic topic question) ──
+  const questionText = firstQuestionText ?? topicQuestion(engineResult.nextQuestion.topic) ?? `Tell me about ${topicLabel(engineResult.nextQuestion.topic)}.`;
+
+  // ── Step 5: Record the question as assistant message ──
+  mem.messages.push({
+    id: uid(),
+    role: "assistant",
+    content: questionText,
+    createdAt: new Date().toISOString(),
+  });
+
+  // ── Step 6: Record the question in the questions list ──
+  mem.questions.push({
+    id: uid(),
+    topic: engineResult.nextQuestion.topic,
+    question: questionText,
+    answer: "",
+    confidence: "low",
+    skipped: false,
+    createdAt: new Date().toISOString(),
+    answeredAt: null,
+  });
+
+  // ── Step 7: Run Requirements Builder ──
+  const requirements = buildRequirements(mem);
+
+  return {
+    done: false,
+    isFollowUp: engineResult.isFollowUp,
+    topic: engineResult.nextQuestion.topic,
+    memory: mem,
+    state: engineResult.state,
+    requirements,
+    completion: engineResult.completion,
+  };
+}
+
 // ── Core: process a user answer in demo mode (no LLM) ──
 
 /**

@@ -32,8 +32,8 @@
     <a href="https://github.com/Farmeobaasje/vibeforge/actions">
       <img src="https://img.shields.io/github/actions/workflow/status/Farmeobaasje/vibeforge/ci.yml?branch=main" alt="CI">
     </a>
-    <a href="https://github.com/Farmeobaasje/vibeforge/releases">
-      <img src="https://img.shields.io/github/v/release/Farmeobaasje/vibeforge" alt="Latest Release">
+    <a href="https://github.com/Farmeobaasje/vibeforge/blob/main/package.json">
+      <img src="https://img.shields.io/badge/version-0.3.1-blue.svg" alt="Version 0.3.1">
     </a>
     <a href="https://www.typescriptlang.org/">
       <img src="https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript" alt="TypeScript">
@@ -56,6 +56,15 @@
   </p>
 
 </div>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/vibeforge-demo-compact.gif">
+    <source media="(prefers-color-scheme: light)" srcset="assets/vibeforge-demo-light-compact.gif">
+    <img src="assets/vibeforge-demo-light-compact.gif" alt="VibeForge demo — from rough idea to AI-ready blueprint in 6 steps" width="560">
+  </picture>
+</p>
+<p align="center"><em>From rough idea to AI-ready blueprint — Describe, Interview, Insights, Overview, Generate, Export.</em></p>
 
 ---
 
@@ -120,6 +129,12 @@ npm run preview
 ## 🎮 Demo
 
 VibeForge ships with a **Guided Tour** featuring **BioBatch Sentinel** — a complete scripted interview scenario for a biotech lab operations platform. Click the "Guided Tour" button on the landing page to experience the full workflow without typing a single word.
+
+| Dark | Light |
+|:---:|:---:|
+| ![Dark theme demo](assets/vibeforge-demo-compact.gif) | ![Light theme demo](assets/vibeforge-demo-light-compact.gif) |
+
+> 🎬 Full resolution: [dark](assets/vibeforge-demo.gif) · [light](assets/vibeforge-demo-light.gif)
 
 ---
 

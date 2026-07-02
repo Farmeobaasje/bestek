@@ -59,11 +59,11 @@ export default function ExportStep({ projectDefinition, onBack, onStartOver }: P
   const handleDownloadZip = useCallback(async () => {
     setZipLoading(true);
     setZipFeedback("idle");
-    const ok = await exportProjectZip(projectDefinition, generatedFiles, bootstrapPrompt);
+    const ok = await exportProjectZip(projectDefinition, generatedFiles);
     setZipLoading(false);
     setZipFeedback(ok ? "success" : "error");
     setTimeout(() => setZipFeedback("idle"), 2500);
-  }, [projectDefinition, generatedFiles, bootstrapPrompt]);
+  }, [projectDefinition, generatedFiles]);
 
   const projectName = projectDefinition.project.name || "your project";
 

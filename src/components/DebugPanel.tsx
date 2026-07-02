@@ -398,9 +398,10 @@ function TechBadge({ label }: { label: string }) {
 function DomainFallbackDisplay({ projectDefinition }: { projectDefinition: ProjectDefinition }) {
   const fallbackInfo = useMemo(() => {
     // Try to get raw text from the project definition
-    const rawText = projectDefinition.project.name
-      || projectDefinition.architecture.domain?.domainLabel
-      || ""
+    const rawText = projectDefinition.product?.problemStatement
+      || projectDefinition.product?.solution
+      || projectDefinition.project?.name
+      || "";
 
     if (!rawText) {
       return {

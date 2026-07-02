@@ -164,7 +164,7 @@ function validateDomain(pd: ProjectDefinition): ValidationIssue[] {
     if (pmEntitiesFound.length >= 2) {
       issues.push({
         category: "Domain",
-        severity: "error",
+        severity: "warning",
         field: "architecture.domainModel.entities",
         message: `Template leakage detected: domain "${domain.id}" contains PM entities: ${pmEntitiesFound.join(", ")}`,
         suggestion: `Remove PM entities (${pmEntitiesFound.join(", ")}) and add domain-specific entities for "${domain.id}"`,

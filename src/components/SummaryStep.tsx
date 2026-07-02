@@ -81,7 +81,7 @@ export default function SummaryStep({ projectDefinition, onUpdate, onBack, onCon
   const [expandedArchitecture, setExpandedArchitecture] = useState(false);
   const { project, product, tech, architecture, roadmap } = projectDefinition;
 
-  const hasData = !!(project.name && project.name !== "My Project");
+  const hasData = project.name && project.name !== "My Project";
 
   // Readiness checklist
   const readiness = useMemo(() => ({
@@ -92,6 +92,7 @@ export default function SummaryStep({ projectDefinition, onUpdate, onBack, onCon
   }), [hasData, architecture.pattern, tech.languages, tech.frameworks]);
 
   // Categorized tech for GitHub-style display
+
   const categorizedTech = useMemo(() => {
     const cats: Record<string, string[]> = {};
     const bucketMap: Record<string, string> = {
@@ -464,10 +465,10 @@ export default function SummaryStep({ projectDefinition, onUpdate, onBack, onCon
 
         {/* Readiness checklist */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-          <ReadinessItem label="Project Definition" done={readiness.projectDefined} />
-          <ReadinessItem label="Architecture" done={readiness.architectureReviewed} />
-          <ReadinessItem label="Technology" done={readiness.technologySelected} />
-          <ReadinessItem label="Documentation" done={readiness.documentationReady} />
+          <ReadinessItem label="Project Definition" done={!!readiness.projectDefined} />
+          <ReadinessItem label="Architecture" done={!!readiness.architectureReviewed} />
+          <ReadinessItem label="Technology" done={!!readiness.technologySelected} />
+          <ReadinessItem label="Documentation" done={!!readiness.documentationReady} />
         </div>
 
         {/* CTA */}

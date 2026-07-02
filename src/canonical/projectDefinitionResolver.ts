@@ -151,8 +151,24 @@ export function resolveProjectDefinition(pd: ProjectDefinition): ProjectDefiniti
 }
 
 /**
+ * PM-related entity names that should NOT trigger a domain match.
+ * These are common in generic software projects and would cause
+ * false domain detection (e.g., matching "construction" or "agency"
+ * just because entities include "Project" and "Task").
+ */
+const PM_ENTITY_NAMES = new Set([
+  "project", "task", "board", "comment", "attachment", "sprint", "backlog",
+  "epic", "storypoint", "timesheet", "milestone", "kanban", "scrum",
+]);
+
+/**
  * Detect domain from entity names.
  * Entities determine the domain — not the other way around.
+ *
+ * PM-only exclusion: if the matched keywords consist ONLY of PM-related
+ * entity names, return null to prevent false domain matches (e.g.,
+ * entities ["Project", "Task", "User"] should not match "construction"
+ * or "agency").
  */
 function detectDomainFromEntities(entityNames: string[]): string | null {
   const domainPatterns: Array<{ domain: string; keywords: string[] }> = [
@@ -179,6 +195,15 @@ function detectDomainFromEntities(entityNames: string[]): string | null {
       entityNames.some((name) => name === kw || name.includes(kw))
     ).length;
     if (matchCount >= 2) {
+      // PM-only exclusion: if ALL matched keywords are PM-related,
+      // this is likely a generic software project, not the matched domain.
+      const matchedKeywords = keywords.filter((kw) =>
+        entityNames.some((name) => name === kw || name.includes(kw))
+      );
+      const allMatchedArePM = matchedKeywords.every((kw) => PM_ENTITY_NAMES.has(kw));
+      if (allMatchedArePM) {
+        return null;
+      }
       return domain;
     }
   }

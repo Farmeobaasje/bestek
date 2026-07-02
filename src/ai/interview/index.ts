@@ -38,5 +38,6 @@ export {
   processUserAnswer,
   processUserAnswerDemo,
   startNewInterview,
+  startNewInterviewDemo,
   skipTopic,
 } from "./interviewSession";

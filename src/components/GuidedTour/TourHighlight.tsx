@@ -1,54 +1,108 @@
 // ──────────────────────────────────────────────
-// TourHighlight — Dims UI, highlights target panel
-// Like Cursor/Linear onboarding overlays
+// TourHighlight — Dynamic highlight overlay
+// Uses getBoundingClientRect() for precise positioning
+// Targets DOM elements via data-tour attributes
 // ──────────────────────────────────────────────
 
+import { useEffect, useState, useCallback } from "react";
 import type { TourHighlightTarget } from "./types";
 
 interface TourHighlightProps {
-  /** Which panel to highlight (null = full dim overlay) */
+  /** Which UI panel to highlight */
   target: TourHighlightTarget;
-  /** Whether the highlight is active */
-  visible: boolean;
+  /** Whether the highlight is visible */
+  isVisible: boolean;
 }
 
-export default function TourHighlight({ target, visible }: TourHighlightProps) {
-  if (!visible) return null;
+interface HighlightRect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
+
+const TARGET_SELECTORS: Record<NonNullable<TourHighlightTarget>, string> = {
+  "chat": '[data-tour="interview-chat"]',
+  "progress-panel": '[data-tour="progress-panel"]',
+  "understanding-panel": '[data-tour="live-project-definition"]',
+};
+
+export default function TourHighlight({ target, isVisible }: TourHighlightProps) {
+  const [rect, setRect] = useState<HighlightRect | null>(null);
+
+  const updatePosition = useCallback(() => {
+    if (!target || !isVisible) {
+      setRect(null);
+      return;
+    }
+
+    const selector = TARGET_SELECTORS[target];
+    if (!selector) {
+      setRect(null);
+      return;
+    }
+
+    const el = document.querySelector(selector);
+    if (!el) {
+      setRect(null);
+      return;
+    }
+
+    const boundingRect = el.getBoundingClientRect();
+    setRect({
+      top: boundingRect.top,
+      left: boundingRect.left,
+      width: boundingRect.width,
+      height: boundingRect.height,
+    });
+  }, [target, isVisible]);
+
+  // Update on mount and when target changes
+  useEffect(() => {
+    updatePosition();
+  }, [updatePosition]);
+
+  // Re-calculate on scroll and resize for robustness
+  useEffect(() => {
+    if (!isVisible || !target) return;
+
+    window.addEventListener("scroll", updatePosition, { passive: true });
+    window.addEventListener("resize", updatePosition, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", updatePosition);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [isVisible, target, updatePosition]);
+
+  if (!isVisible || !target || !rect) return null;
 
   return (
-    <>
-      {/* Full-screen dim overlay */}
-      <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[1px]" />
+    <div className="fixed inset-0 z-[55] pointer-events-none">
+      {/* Semi-transparent overlay — lighter than before */}
+      <div className="absolute inset-0 bg-black/20" />
 
-      {/* Panel-specific highlights (un-dim the target area) */}
-      {target === "chat" && (
-        <div className="fixed inset-0 z-50 pointer-events-none">
-          {/* Center area (chat) is un-dimmed via a cutout */}
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
-          <div className="absolute left-[240px] right-[280px] top-[53px] bottom-[53px] bg-transparent">
-            {/* Glow border around chat */}
-            <div className="absolute inset-0 rounded-none border-2 border-brand/40 shadow-[0_0_30px_rgba(79,57,246,0.15)] pointer-events-none" />
-          </div>
-        </div>
-      )}
+      {/* Cutout — the highlighted element shines through */}
+      <div
+        className="absolute bg-transparent pointer-events-auto"
+        style={{
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+        }}
+      />
 
-      {target === "progress-panel" && (
-        <div className="fixed inset-0 z-50 pointer-events-none">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
-          <div className="absolute left-0 top-[53px] bottom-[53px] w-[240px] bg-transparent">
-            <div className="absolute inset-0 border-2 border-brand/40 shadow-[0_0_30px_rgba(79,57,246,0.15)] pointer-events-none" />
-          </div>
-        </div>
-      )}
-
-      {target === "understanding-panel" && (
-        <div className="fixed inset-0 z-50 pointer-events-none">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
-          <div className="absolute right-0 top-[53px] bottom-[53px] w-[280px] bg-transparent">
-            <div className="absolute inset-0 border-2 border-brand/40 shadow-[0_0_30px_rgba(79,57,246,0.15)] pointer-events-none" />
-          </div>
-        </div>
-      )}
-    </>
+      {/* Highlight ring around the cutout */}
+      <div
+        className="absolute rounded-lg ring-2 ring-brand/50 ring-offset-2 ring-offset-transparent transition-all duration-300"
+        style={{
+          top: rect.top - 4,
+          left: rect.left - 4,
+          width: rect.width + 8,
+          height: rect.height + 8,
+        }}
+      />
+    </div>
   );
 }

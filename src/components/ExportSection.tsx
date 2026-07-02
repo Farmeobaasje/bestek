@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback } from 'react'
 import type { ProjectDefinition, GeneratedFile } from '../types/projectDefinition'
 import { generateClineBootstrapPrompt } from '../lib/bootstrapPromptGenerator'
 import { buildRenderModel } from '../generator/renderModel'
+
 import { copyToClipboard } from '../lib/clipboard'
 import { downloadText, downloadJson } from '../lib/download'
 import { exportProjectZip } from '../lib/zipExporter'
@@ -26,17 +27,17 @@ export default function ExportSection({ projectDefinition, selectedFile, generat
   const [zipLoading, setZipLoading] = useState(false)
   const [zipFeedback, setZipFeedback] = useState<string | null>(null)
 
-  const renderModel = useMemo(() => buildRenderModel(projectDefinition), [projectDefinition])
+  const bootstrapPrompt = useMemo(() => {
+    const rm = buildRenderModel(projectDefinition);
+    return generateClineBootstrapPrompt(projectDefinition, rm);
+  }, [projectDefinition])
 
-  const bootstrapPrompt = useMemo(
-    () => generateClineBootstrapPrompt(projectDefinition, renderModel),
-    [projectDefinition, renderModel]
-  )
   const handleCopyPrompt = useCallback(async () => {
     const ok = await copyToClipboard(bootstrapPrompt)
-    setCopyFeedback(ok ? '? Copied!' : '? Copy failed')
+    setCopyFeedback(ok ? '✓ Copied!' : '✗ Copy failed')
     setTimeout(() => setCopyFeedback(null), 2000)
   }, [bootstrapPrompt])
+
   const handleDownloadFile = useCallback(() => {
     if (!selectedFile) return
     const ok = downloadText(selectedFile.path, selectedFile.content)
@@ -58,11 +59,11 @@ export default function ExportSection({ projectDefinition, selectedFile, generat
   const handleDownloadZip = useCallback(async () => {
     setZipLoading(true)
     setZipFeedback(null)
-    const ok = await exportProjectZip(projectDefinition, generatedFiles, bootstrapPrompt)
+    const ok = await exportProjectZip(projectDefinition, generatedFiles)
     setZipLoading(false)
     setZipFeedback(ok ? '✓ ZIP downloaded!' : '✗ ZIP failed')
     setTimeout(() => setZipFeedback(null), 2000)
-  }, [projectDefinition, generatedFiles, bootstrapPrompt])
+  }, [projectDefinition, generatedFiles])
 
   return (
     <Section title="Export" description="Generate and download your project files">

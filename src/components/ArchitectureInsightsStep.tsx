@@ -9,14 +9,19 @@
 //
 // This is a presentation-layer redesign only.
 // NO changes to hooks, models, storage, or AI orchestration.
+//
+// autoRun: When true and no analysis exists, automatically
+// triggers runAnalysis() on mount (used in scripted demo playback).
+// demoArchitecture: Pre-canned result to use instead of LLM call.
 // ──────────────────────────────────────────────
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useArchitectTrigger } from "../hooks/useArchitectTrigger";
 import type {
   ArchitectRisk,
   Recommendation,
   Tradeoff,
+  ArchitectureAnalysis,
 } from "../models/architectureAnalysis";
 import {
   deriveStrengths,
@@ -34,6 +39,10 @@ import DeveloperTools from "./DeveloperTools";
 interface Props {
   onBack: () => void;
   onContinue: () => void;
+  /** When true, auto-run analysis on mount (scripted demo) */
+  autoRun?: boolean;
+  /** Pre-canned architecture result (avoids LLM call during demo) */
+  demoArchitecture?: ArchitectureAnalysis;
 }
 
 // ── Helpers ──────────────────────────────────
@@ -374,7 +383,7 @@ function AccordionTechnicalDetails({ technicalAnalysis }: { technicalAnalysis: {
 
 // ── Main Component ───────────────────────────
 
-export default function ArchitectureInsightsStep({ onBack, onContinue }: Props) {
+export default function ArchitectureInsightsStep({ onBack, onContinue, autoRun = false, demoArchitecture }: Props) {
   const {
     runAnalysis,
     analysisError: architectError,
@@ -394,13 +403,30 @@ export default function ArchitectureInsightsStep({ onBack, onContinue }: Props) 
     return analysis.executiveSummary.length > 0 || analysis.overallScore > 0;
   }, [analysis]);
 
+  // ── Auto-run on mount (scripted demo) ──────
+  // When autoRun is true and no analysis exists yet,
+  // automatically trigger the analysis.
+  const autoRunRef = useRef(false);
+  useEffect(() => {
+    if (autoRun && !autoRunRef.current && !hasAnalysis && analysisStatus === "idle") {
+      autoRunRef.current = true;
+      runAnalysis();
+    }
+  }, [autoRun, hasAnalysis, analysisStatus, runAnalysis]);
+
+  // ── Use demo architecture if provided ──────
+  // When demoArchitecture is provided, override the analysis
+  // from the hook with the pre-canned result.
+  const effectiveAnalysis = demoArchitecture ?? analysis;
+  const effectiveStatus = demoArchitecture ? "ready" : analysisStatus;
+
   // ── Derived presentation data ──────────────
 
-  const strengths = useMemo(() => deriveStrengths(analysis), [analysis]);
-  const validationItems = useMemo(() => deriveValidationItems(analysis), [analysis]);
-  const readiness = useMemo(() => deriveReadiness(analysis), [analysis]);
-  const qualitativeConfidence = useMemo(() => deriveQualitativeConfidence(analysis), [analysis]);
-  const { designDecisions, architecturalRisks } = useMemo(() => groupRefinements(analysis.risks), [analysis.risks]);
+  const strengths = useMemo(() => deriveStrengths(effectiveAnalysis), [effectiveAnalysis]);
+  const validationItems = useMemo(() => deriveValidationItems(effectiveAnalysis), [effectiveAnalysis]);
+  const readiness = useMemo(() => deriveReadiness(effectiveAnalysis), [effectiveAnalysis]);
+  const qualitativeConfidence = useMemo(() => deriveQualitativeConfidence(effectiveAnalysis), [effectiveAnalysis]);
+  const { designDecisions, architecturalRisks } = useMemo(() => groupRefinements(effectiveAnalysis.risks), [effectiveAnalysis.risks]);
 
   const readinessInfo = useMemo(() => readinessDisplay(readiness), [readiness]);
   const confidenceInfo = useMemo(() => confidenceDisplay(qualitativeConfidence), [qualitativeConfidence]);
@@ -409,7 +435,7 @@ export default function ArchitectureInsightsStep({ onBack, onContinue }: Props) 
 
   // ── Render states ──────────────────────────
 
-  if (analysisStatus === "analyzing") {
+  if (effectiveStatus === "analyzing") {
     return (
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
@@ -435,7 +461,7 @@ export default function ArchitectureInsightsStep({ onBack, onContinue }: Props) 
     );
   }
 
-  if (analysisStatus === "error") {
+  if (effectiveStatus === "error") {
     return (
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
@@ -465,7 +491,7 @@ export default function ArchitectureInsightsStep({ onBack, onContinue }: Props) 
     );
   }
 
-  if (!hasAnalysis) {
+  if (!hasAnalysis && !demoArchitecture) {
     return (
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
@@ -506,7 +532,7 @@ export default function ArchitectureInsightsStep({ onBack, onContinue }: Props) 
     estimatedTimeline,
     functionalAnalysis,
     technicalAnalysis,
-  } = analysis;
+  } = effectiveAnalysis;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -596,7 +622,7 @@ export default function ArchitectureInsightsStep({ onBack, onContinue }: Props) 
       </CollapsibleSection>
 
       {/* Developer Mode (was DeveloperTools) */}
-      <DeveloperTools analysis={analysis} />
+      <DeveloperTools analysis={effectiveAnalysis} />
 
       {/* ── Actions ── */}
       <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-surface/40 border border-app rounded-xl">
@@ -629,8 +655,10 @@ export default function ArchitectureInsightsStep({ onBack, onContinue }: Props) 
   );
 }
 
+// ── Sub-components ───────────────────────────
 
 function TechDetail({ title, text, pre }: { title: string; text: string; pre?: boolean }) {
+
   return (
     <div className="mb-3">
       <h4 className="text-xs font-semibold text-muted uppercase tracking-wider mb-1">{title}</h4>

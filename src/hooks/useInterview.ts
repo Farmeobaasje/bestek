@@ -14,6 +14,7 @@ import { useState, useCallback, useRef } from "react";
 import { createOrchestrator, type Orchestrator } from "../orchestrator";
 import {
   startNewInterview,
+  startNewInterviewDemo,
   processUserAnswer,
   processUserAnswerDemo,
   skipTopic,
@@ -450,6 +451,23 @@ export function useInterview(initialContext?: string, demoMode?: boolean): UseIn
 
       // Clear any previous engine state — new interview starts fresh
       engineStateRef.current = null;
+
+      // In demo mode, use the lightweight demo path (no LLM calls)
+      if (demoMode) {
+        const result = await startNewInterviewDemo(seedMemory);
+
+        if (result.error) {
+          setError(result.error);
+          setIsLoading(false);
+          setTypingContext(null);
+          return;
+        }
+
+        engineStateRef.current = result.state;
+        replaceMemory(result.memory);
+        processResult(result);
+        return;
+      }
 
       const result = await startNewInterview(config, seedMemory);
 
