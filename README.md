@@ -176,32 +176,6 @@ If VibeForge helps you start even one project with more clarity, then it has alr
 
 ---
 
-## 🧩 Domain Templates
-
-VibeForge includes **17 domain-specific templates** that influence taglines, architecture patterns, entities, roadmaps, and data flows:
-
-| Domain | Description |
-|--------|-------------|
-| Marketplace | Online marketplace connecting buyers and sellers |
-| Restaurant | Restaurant management system |
-| CRM | Customer relationship management |
-| Fitness | Fitness and wellness platform |
-| Construction | Construction project management |
-| Agency | Digital agency management |
-| Healthcare | Healthcare practice management |
-| Education | Educational platform |
-| AI SaaS | AI-powered SaaS platform |
-| AI SaaS Support | AI SaaS customer support |
-| Emulator | Emulator/VM platform |
-| Plumbing | Plumbing service management |
-| Project Management | Project management tool |
-| Travel | Travel booking platform |
-| Solar Energy | Solar energy platform |
-| Website | Business website |
-| Generic | Fallback for any other domain |
-
----
-
 ## 🏗 Architecture
 
 ```
