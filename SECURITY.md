@@ -9,9 +9,9 @@
 
 ## Reporting a Vulnerability
 
-VibeForge is a client-side web application that runs entirely in the browser. All data is stored locally using `localStorage` — no data is sent to any server unless you configure an AI provider endpoint.
+Bestek is a client-side web application that runs entirely in the browser. All data is stored locally using `localStorage` — no data is sent to any server unless you configure an AI provider endpoint.
 
-If you discover a security vulnerability, please report it by opening a [GitHub Issue](https://github.com/Farmeobaasje/vibeforge/issues) with the label `security`.
+If you discover a security vulnerability, please report it by opening a [GitHub Issue](https://github.com/Farmeobaasje/bestek/issues) with the label `security`.
 
 Please include the following in your report:
 

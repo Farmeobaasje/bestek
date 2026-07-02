@@ -46,7 +46,7 @@ export default function WizardHeader({ currentStep, onStepClick, lastSavedAt, sa
               <path d="M16 16L20 20L16 24L12 20L16 16Z" fill="currentColor" fillOpacity="0.4"/>
             </svg>
             <div>
-              <h1 className="text-lg font-semibold tracking-tight text-app">VibeForge</h1>
+              <h1 className="text-lg font-semibold tracking-tight text-app">Bestek</h1>
               <p className="text-xs text-muted hidden sm:block">
                 From raw idea to AI-ready implementation plan.
               </p>

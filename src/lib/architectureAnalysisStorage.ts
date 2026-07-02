@@ -7,7 +7,7 @@ import {
   createEmptyArchitectureAnalysis,
 } from "../models/architectureAnalysis";
 
-const STORAGE_KEY = "vibeforge-architecture-analysis";
+const STORAGE_KEY = "bestek-architecture-analysis";
 
 /**
  * Load an ArchitectureAnalysis from localStorage.

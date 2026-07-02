@@ -8,7 +8,7 @@ import {
 } from "../types/projectDefinition";
 import { normalizeProjectDefinition } from "./projectDefinitionParser";
 
-const STORAGE_KEY = "vibeforge-project-definition";
+const STORAGE_KEY = "bestek-project-definition";
 
 /**
  * Load a ProjectDefinition from localStorage.
@@ -60,19 +60,19 @@ export function clearProjectDefinition(): void {
 // ── Workspace-wide reset ──────────────────────
 
 /**
- * All known localStorage keys used by VibeForge.
+ * All known localStorage keys used by Bestek.
  * Keep this list in sync when adding new storage modules.
  */
 const ALL_STORAGE_KEYS = [
-  "vibeforge-project-definition",
-  "vibeforge-conversation-memory",
-  "vibeforge-project-requirements",
-  "vibeforge-architecture-analysis",
-  "vibeforge-workspace-state",
+  "bestek-project-definition",
+  "bestek-conversation-memory",
+  "bestek-project-requirements",
+  "bestek-architecture-analysis",
+  "bestek-workspace-state",
 ];
 
 /**
- * Remove ALL VibeForge data from localStorage.
+ * Remove ALL Bestek data from localStorage.
  * This is the nuclear reset — use only for "New Project" / "Reset Workspace".
  *
  * Clears:
@@ -86,6 +86,44 @@ export function clearAllStorage(): void {
   for (const key of ALL_STORAGE_KEYS) {
     try {
       localStorage.removeItem(key);
+    } catch {
+      // fail silently per key
+    }
+  }
+}
+
+// ── Storage migration ─────────────────────────
+
+/**
+ * Migrate data from old vibeforge-* keys to new bestek-* keys.
+ * Idempotent: never overwrites existing bestek-* keys.
+ * Old vibeforge-* keys are NOT deleted — they remain as a fallback.
+ *
+ * Call once on app startup.
+ */
+export function migrateStorage(): void {
+  const oldToNew: Record<string, string> = {
+    "vibeforge-project-definition": "bestek-project-definition",
+    "vibeforge-conversation-memory": "bestek-conversation-memory",
+    "vibeforge-project-requirements": "bestek-project-requirements",
+    "vibeforge-architecture-analysis": "bestek-architecture-analysis",
+    "vibeforge-workspace-state": "bestek-workspace-state",
+    "vibeforge-theme": "bestek-theme",
+    "vibeforge-ai-endpoints": "bestek-ai-endpoints",
+    "vibeforge-ai-api-keys": "bestek-ai-api-keys",
+    "vibeforge-ai-active-endpoint": "bestek-ai-active-endpoint",
+    "vibeforge-ai-assist-mode": "bestek-ai-assist-mode",
+  };
+
+  for (const [oldKey, newKey] of Object.entries(oldToNew)) {
+    try {
+      // Only migrate if the new key doesn't already exist
+      if (localStorage.getItem(newKey) === null) {
+        const oldValue = localStorage.getItem(oldKey);
+        if (oldValue !== null) {
+          localStorage.setItem(newKey, oldValue);
+        }
+      }
     } catch {
       // fail silently per key
     }

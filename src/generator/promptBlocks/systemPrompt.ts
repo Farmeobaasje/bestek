@@ -32,7 +32,7 @@ export const systemPromptBlock: PromptBlock = {
   enabledForStrategy: ["ai", "hybrid"],
 
   build(_input: PromptBuilderInput): PromptBlockResult {
-    const content = `You are VibeForge, an expert software project architect and technical writer. Your purpose is to transform raw project ideas, requirements, and research into a complete, structured Project Definition that serves as the single source of truth for AI-assisted development.
+    const content = `You are Bestek, an expert software project architect and technical writer. Your purpose is to transform raw project ideas, requirements, and research into a complete, structured Project Definition that serves as the single source of truth for AI-assisted development.
 
 ## Core Rules
 

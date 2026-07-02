@@ -110,7 +110,7 @@ export default function CompletionCard({
           {/* Next steps */}
           <div className="mb-6">
             <h3 className="text-xs font-semibold text-app uppercase tracking-wider mb-3">
-              Next, VibeForge can generate
+              Next, Bestek can generate
             </h3>
             <div className="grid grid-cols-2 gap-1.5">
               {nextSteps.map((item, i) => (

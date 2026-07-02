@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for VibeForge
+about: Suggest an idea for Bestek
 title: "[FEATURE] "
 labels: enhancement
 assignees: ''
@@ -19,7 +19,7 @@ A clear and concise description of what you want to happen.
 
 A clear and concise description of any alternative solutions or features you've considered.
 
-## How Would This Benefit VibeForge Users?
+## How Would This Benefit Bestek Users?
 
 Explain how this feature would improve the experience for users.
 

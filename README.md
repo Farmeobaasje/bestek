@@ -3,15 +3,15 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./src/assets/brand/lockup-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="./src/assets/brand/lockup-light.svg">
-    <img alt="VibeForge" src="./src/assets/brand/lockup-dark.svg" width="480">
+    <img alt="Bestek" src="./src/assets/brand/lockup-dark.svg" width="480">
   </picture>
 
-  <h3 align="center">Turn Ideas Into Software Blueprints — Instantly</h3>
+  <h3 align="center">The spec your AI builds from.</h3>
 
   <p align="center">
-    AI-powered project discovery & blueprint generation
+    An AI architect interviews your idea and writes the bestek — rules, memory bank, roadmap & bootstrap prompt for Cline, Cursor & Claude Code.
     <br />
-    <a href="https://github.com/Farmeobaasje/vibeforge"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/Farmeobaasje/bestek"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="#-features">Features</a>
@@ -20,19 +20,19 @@
     ·
     <a href="#-demo">Demo</a>
     ·
-    <a href="https://github.com/Farmeobaasje/vibeforge/issues">Report Bug</a>
+    <a href="https://github.com/Farmeobaasje/bestek/issues">Report Bug</a>
     ·
-    <a href="https://github.com/Farmeobaasje/vibeforge/issues">Request Feature</a>
+    <a href="https://github.com/Farmeobaasje/bestek/issues">Request Feature</a>
   </p>
 
   <p align="center">
-    <a href="https://github.com/Farmeobaasje/vibeforge/blob/main/LICENSE">
+    <a href="https://github.com/Farmeobaasje/bestek/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License">
     </a>
-    <a href="https://github.com/Farmeobaasje/vibeforge/actions">
-      <img src="https://img.shields.io/github/actions/workflow/status/Farmeobaasje/vibeforge/ci.yml?branch=main" alt="CI">
+    <a href="https://github.com/Farmeobaasje/bestek/actions">
+      <img src="https://img.shields.io/github/actions/workflow/status/Farmeobaasje/bestek/ci.yml?branch=main" alt="CI">
     </a>
-    <a href="https://github.com/Farmeobaasje/vibeforge/blob/main/package.json">
+    <a href="https://github.com/Farmeobaasje/bestek/blob/main/package.json">
       <img src="https://img.shields.io/badge/version-0.3.1-blue.svg" alt="Version 0.3.1">
     </a>
     <a href="https://www.typescriptlang.org/">
@@ -61,18 +61,20 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/vibeforge-demo-compact.gif">
     <source media="(prefers-color-scheme: light)" srcset="assets/vibeforge-demo-light-compact.gif">
-    <img src="assets/vibeforge-demo-light-compact.gif" alt="VibeForge demo — from rough idea to AI-ready blueprint in 6 steps" width="560">
+    <img src="assets/vibeforge-demo-light-compact.gif" alt="Bestek demo — from rough idea to AI-ready blueprint in 6 steps" width="560">
   </picture>
 </p>
 <p align="center"><em>From rough idea to AI-ready blueprint — Describe, Interview, Insights, Overview, Generate, Export.</em></p>
 
 ---
 
-## 🧠 What is VibeForge?
+## 🧠 What is Bestek?
 
-**VibeForge** is an AI-powered web application that interviews you about your project idea and generates a complete, structured software project blueprint — including architecture documentation, technical specifications, Memory Bank, Cline rules, and bootstrap prompts.
+**Bestek** is an AI-powered web application that interviews you about your project idea and generates a complete, structured software project blueprint — including architecture documentation, technical specifications, Memory Bank, Cline rules, and bootstrap prompts.
 
-Think of it as your **AI software architect**: you describe your idea, VibeForge asks smart follow-up questions, analyzes your requirements, and produces a production-ready project definition that you can immediately use with AI coding assistants like Cline, Cursor, or Claude.
+Think of it as your **AI software architect**: you describe your idea, Bestek asks smart follow-up questions, analyzes your requirements, and produces a production-ready project definition that you can immediately use with AI coding assistants like Cline, Cursor, or Claude.
+
+In Dutch construction, the *bestek* is the specification document contractors build from. This project does the same for AI-assisted software development.
 
 ---
 
@@ -105,8 +107,8 @@ Think of it as your **AI software architect**: you describe your idea, VibeForge
 
 ```bash
 # Clone the repository
-git clone https://github.com/Farmeobaasje/vibeforge.git
-cd vibeforge
+git clone https://github.com/Farmeobaasje/bestek.git
+cd bestek
 
 # Install dependencies
 npm ci
@@ -128,7 +130,7 @@ npm run preview
 
 ## 🎮 Demo
 
-VibeForge ships with a **Guided Tour** featuring **BioBatch Sentinel** — a complete scripted interview scenario for a biotech lab operations platform. Click the "Guided Tour" button on the landing page to experience the full workflow without typing a single word.
+Bestek ships with a **Guided Tour** featuring **BioBatch Sentinel** — a complete scripted interview scenario for a biotech lab operations platform. Click the "Guided Tour" button on the landing page to experience the full workflow without typing a single word.
 
 | Dark | Light |
 |:---:|:---:|
@@ -138,9 +140,9 @@ VibeForge ships with a **Guided Tour** featuring **BioBatch Sentinel** — a com
 
 ---
 
-## 🧱 Why I Built VibeForge
+## 🧱 Why I Built Bestek
 
-VibeForge started from a very personal place.
+Bestek started from a very personal place.
 
 I worked in construction for years. It was the craft I knew, the work I was used to, and the world I came from.
 
@@ -164,15 +166,41 @@ The same prompts.
 
 The same project rules.
 
-So I built VibeForge.
+So I built Bestek.
 
 Not as another AI coding assistant, but as the workspace before the coding starts — a place where raw ideas become structured software blueprints that AI tools can actually work with.
 
-VibeForge represents a new chapter for me: building with software instead of construction materials, and sharing the tools I wish I had when I started.
+Bestek represents a new chapter for me: building with software instead of construction materials, and sharing the tools I wish I had when I started.
 
 It is free and open source because I want other builders to use it, learn from it, and improve it.
 
-If VibeForge helps you start even one project with more clarity, then it has already done its job.
+If Bestek helps you start even one project with more clarity, then it has already done its job.
+
+---
+
+## 🧩 Domain Templates
+
+Bestek includes **17 domain-specific templates** that influence taglines, architecture patterns, entities, roadmaps, and data flows:
+
+| Domain | Description |
+|--------|-------------|
+| Marketplace | Online marketplace connecting buyers and sellers |
+| Restaurant | Restaurant management system |
+| CRM | Customer relationship management |
+| Fitness | Fitness and wellness platform |
+| Construction | Construction project management |
+| Agency | Digital agency management |
+| Healthcare | Healthcare practice management |
+| Education | Educational platform |
+| AI SaaS | AI-powered SaaS platform |
+| AI SaaS Support | AI SaaS customer support |
+| Emulator | Emulator/VM platform |
+| Plumbing | Plumbing service management |
+| Project Management | Project management tool |
+| Travel | Travel booking platform |
+| Solar Energy | Solar energy platform |
+| Website | Business website |
+| Generic | Fallback for any other domain |
 
 ---
 
@@ -224,8 +252,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full contribution guide.
 
 ```bash
 # Fork the repo, then clone your fork
-git clone https://github.com/your-username/vibeforge.git
-cd vibeforge
+git clone https://github.com/your-username/bestek.git
+cd bestek
 
 # Install dependencies
 npm ci
@@ -247,13 +275,13 @@ Distributed under the **MIT License**. See [LICENSE](./LICENSE) for more informa
 
 ## ☕ Support
 
-VibeForge is free and open source.
+Bestek is free and open source.
 
 There are no subscriptions, no locked features, and no enterprise edition.
 
 I build this project independently, in my own time, while transitioning into software development as a new career path.
 
-If VibeForge saves you time or helps you build better projects, you can support its development here:
+If Bestek saves you time or helps you build better projects, you can support its development here:
 
 <a href="https://www.buymeacoffee.com/lynoa" target="_blank">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-violet.png" alt="Buy Me a Coffee" style="height: 60px !important;width: 217px !important;">
@@ -264,7 +292,7 @@ A kind message helps.
 A GitHub star helps.  
 And if that coffee also helps with this week's groceries, I appreciate it more than you know.
 
-Thank you for supporting VibeForge. ❤️
+Thank you for supporting Bestek. ❤️
 
 ---
 

@@ -9,10 +9,10 @@ import { getDefaultUserEndpoints } from "./provider-config";
 
 // ── Storage keys ──────────────────────────────
 
-const ENDPOINTS_KEY = "vibeforge-ai-endpoints";
-const API_KEYS_KEY = "vibeforge-ai-api-keys";
-const ACTIVE_ENDPOINT_KEY = "vibeforge-ai-active-endpoint";
-const AI_ASSIST_MODE_KEY = "vibeforge-ai-assist-mode";
+const ENDPOINTS_KEY = "bestek-ai-endpoints";
+const API_KEYS_KEY = "bestek-ai-api-keys";
+const ACTIVE_ENDPOINT_KEY = "bestek-ai-active-endpoint";
+const AI_ASSIST_MODE_KEY = "bestek-ai-assist-mode";
 
 // ── Types ─────────────────────────────────────
 

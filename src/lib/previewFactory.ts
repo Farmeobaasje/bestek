@@ -24,7 +24,7 @@ import { generateDocumentationFiles } from "./docsGenerator";
 import { generateClineBootstrapPrompt } from "./bootstrapPromptGenerator";
 
 /**
- * Generate preview content for all files that VibeForge will eventually
+ * Generate preview content for all files that Bestek will eventually
  * produce. Aggregates output from all generators.
  *
  * Central pipeline:

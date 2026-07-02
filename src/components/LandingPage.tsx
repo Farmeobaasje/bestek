@@ -4,11 +4,12 @@
 // "I give my idea → AI builds a complete software project."
 // ──────────────────────────────────────────────
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { EXAMPLE_PROJECTS, type ExampleProject } from "../fixtures/exampleProjects";
 import JsonImportModal from "./JsonImportModal";
 import { parseProjectDefinitionJson } from "../lib/projectDefinitionParser";
 import { loadEndpoints, loadActiveEndpointId, getApiKeyForEndpoint } from "../ai/settings";
+import { loadThemePreference, resolveTheme } from "../lib/themeSettings";
 import type { ProjectDefinition } from "../types/projectDefinition";
 
 interface Props {
@@ -212,18 +213,47 @@ export default function LandingPage({ onSetProjectDefinition, onStartProjectDisc
     }
   }, [onSetProjectDefinition, onContinue]);
 
+  // ── Theme-aware lockup selection ────────────
+  const [appTheme, setAppTheme] = useState<"dark" | "light">(() => {
+    const pref = loadThemePreference();
+    return resolveTheme(pref);
+  });
+
+  useEffect(() => {
+    // Re-read theme on every render to catch theme-toggle changes
+    const pref = loadThemePreference();
+    setAppTheme(resolveTheme(pref));
+
+    // Also listen for storage changes (theme toggle saves to localStorage)
+    const handler = () => {
+      const p = loadThemePreference();
+      setAppTheme(resolveTheme(p));
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, []);
+
+  const lockupSrc = appTheme === "dark"
+    ? "/src/assets/brand/lockup-dark.svg"
+    : "/src/assets/brand/lockup-light.svg";
+
+  const markSrc = appTheme === "dark"
+    ? "/src/assets/brand/mark-white.svg"
+    : "/src/assets/brand/mark-ink.svg";
+
   const statusDisplay = STATUS_DISPLAY[architectStatus.status];
   const ctaLabel = getCtaLabel(architectStatus.status);
   const isReady = architectStatus.status === "ready";
 
   return (
+
     <div className="min-h-screen bg-app">
       <div className="max-w-3xl mx-auto px-6">
         {/* Top row: brand mark left / Settings right */}
         <div className="flex items-center justify-between pt-6 pb-2">
           <img
-            src="/src/assets/brand/mark-white.svg"
-            alt="VibeForge"
+            src={markSrc}
+            alt="Bestek"
             className="w-8 h-8"
           />
           {onOpenGeneralSettings && (
@@ -246,20 +276,14 @@ export default function LandingPage({ onSetProjectDefinition, onStartProjectDisc
             ════════════════════════════════════════ */}
         <section className="pt-24 sm:pt-32 pb-12 sm:pb-14 text-center">
           <div className="mb-8 flex justify-center">
-            <picture>
-              <source srcSet="/src/assets/brand/lockup-dark.svg" media="(prefers-color-scheme: dark)" />
-              <img
-                src="/src/assets/brand/lockup-light.svg"
-                alt="VibeForge — IDEA → FORGED SOFTWARE"
-                className="h-20 sm:h-24 w-auto"
-              />
-            </picture>
+            <img
+              src={lockupSrc}
+              alt="Bestek — IDEA → SPEC → SOFTWARE"
+              className="h-20 sm:h-24 w-auto"
+            />
           </div>
-          <p className="text-lg sm:text-xl text-secondary max-w-2xl mx-auto leading-relaxed mb-3">
-            IDEA → FORGED SOFTWARE
-          </p>
           <p className="text-sm text-muted max-w-xl mx-auto">
-            The AI operating system for software projects.
+            The spec your AI builds from.
             From rough idea to structured blueprint — without leaving your browser.
           </p>
         </section>

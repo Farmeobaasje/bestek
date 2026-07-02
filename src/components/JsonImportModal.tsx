@@ -140,7 +140,7 @@ export default function JsonImportModal({ isOpen, onClose, onImport, initialValu
               disabled={!rawJson.trim()}
               className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 disabled:text-gray-500 text-white text-sm font-medium rounded-lg transition-colors"
             >
-              Import into VibeForge
+              Import into Bestek
             </button>
           </div>
         </div>

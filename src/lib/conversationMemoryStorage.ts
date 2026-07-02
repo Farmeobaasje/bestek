@@ -7,7 +7,7 @@ import {
   createEmptyConversationMemory,
 } from "../models/conversationMemory";
 
-const STORAGE_KEY = "vibeforge-conversation-memory";
+const STORAGE_KEY = "bestek-conversation-memory";
 
 /**
  * Load a ConversationMemory from localStorage.

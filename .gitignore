@@ -50,3 +50,6 @@ $RECYCLE.BIN/
 
 # Coverage
 coverage/
+
+# Project rules (local only, not for GitHub)
+.clinerules/

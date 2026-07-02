@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve VibeForge
+about: Create a report to help us improve Bestek
 title: "[BUG] "
 labels: bug
 assignees: ''
@@ -33,7 +33,7 @@ If applicable, add screenshots to help explain your problem.
 - **OS:** [e.g. Windows 11, macOS 14, Ubuntu 24.04]
 - **Browser:** [e.g. Chrome 120, Firefox 121, Safari 17]
 - **Node.js Version:** [e.g. 20.11.0]
-- **VibeForge Version:** [e.g. 0.3.1]
+- **Bestek Version:** [e.g. 0.3.1]
 
 ## Additional Context
 

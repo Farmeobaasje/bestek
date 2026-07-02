@@ -1,6 +1,6 @@
 # Support
 
-Welcome to VibeForge! We're here to help you get the most out of the project.
+Welcome to Bestek! We're here to help you get the most out of the project.
 
 ## Documentation
 
@@ -13,7 +13,7 @@ Welcome to VibeForge! We're here to help you get the most out of the project.
 
 ### GitHub Issues
 
-For bug reports and feature requests, please use [GitHub Issues](https://github.com/Farmeobaasje/vibeforge/issues).
+For bug reports and feature requests, please use [GitHub Issues](https://github.com/Farmeobaasje/bestek/issues).
 
 Before creating a new issue:
 1. Check if a similar issue already exists
@@ -22,11 +22,11 @@ Before creating a new issue:
 
 ### Discussions
 
-For questions, ideas, and general discussion, visit [GitHub Discussions](https://github.com/Farmeobaasje/vibeforge/discussions).
+For questions, ideas, and general discussion, visit [GitHub Discussions](https://github.com/Farmeobaasje/bestek/discussions).
 
 ### Buy Me a Coffee
 
-If you find VibeForge valuable and want to support the project:
+If you find Bestek valuable and want to support the project:
 
 <a href="https://www.buymeacoffee.com/lynoa" target="_blank">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-violet.png" alt="Buy Me a Coffee" style="height: 60px !important;width: 217px !important;">
@@ -34,9 +34,9 @@ If you find VibeForge valuable and want to support the project:
 
 ## Common Questions
 
-### What is VibeForge?
+### What is Bestek?
 
-VibeForge is an AI-powered web application that interviews you about your project idea and generates a complete software project blueprint.
+Bestek is an AI-powered web application that interviews you about your project idea and generates a complete software project blueprint. In Dutch construction, the *bestek* is the specification document contractors build from.
 
 ### Do I need an API key?
 
@@ -46,11 +46,11 @@ Yes, to use AI-powered features (interview agent, architect analysis), you need 
 
 No. All data is stored locally in your browser's `localStorage`. Nothing is sent to any server unless you configure an AI provider endpoint.
 
-### Can I use VibeForge offline?
+### Can I use Bestek offline?
 
 Basic functionality works offline after the initial load. AI-powered features require an internet connection to reach your configured AI provider.
 
 ## Stay Updated
 
-- ⭐ Star the [GitHub repository](https://github.com/Farmeobaasje/vibeforge)
-- Watch for [new releases](https://github.com/Farmeobaasje/vibeforge/releases)
+- ⭐ Star the [GitHub repository](https://github.com/Farmeobaasje/bestek)
+- Watch for [new releases](https://github.com/Farmeobaasje/bestek/releases)

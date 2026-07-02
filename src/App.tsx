@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────
-// App — VibeForge 6-step wizard
+// App — Bestek 6-step wizard
 // Describe → Interview → Architecture Review → Summary → Generate → Export
 //
 // Demo playback wiring:

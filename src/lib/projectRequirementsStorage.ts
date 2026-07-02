@@ -7,7 +7,7 @@ import {
   createEmptyProjectRequirements,
 } from "../models/projectRequirements";
 
-const STORAGE_KEY = "vibeforge-project-requirements";
+const STORAGE_KEY = "bestek-project-requirements";
 
 /**
  * Load a ProjectRequirements from localStorage.

@@ -224,7 +224,7 @@ function memoryActiveContext(rm: RenderModel): string {
 
   // Recent changes
   lines.push("## Recent changes");
-  lines.push("- Project bootstrapped via VibeForge");
+  lines.push("- Project bootstrapped via Bestek");
   lines.push("");
 
   // Next steps

@@ -9,7 +9,7 @@ export type ResolvedTheme = "dark" | "light";
 // Backward-compatible aliases
 export type Theme = ThemePreference;
 
-const THEME_KEY = "vibeforge-theme";
+const THEME_KEY = "bestek-theme";
 
 /**
  * Load the saved theme preference from localStorage.

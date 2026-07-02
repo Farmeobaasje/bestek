@@ -1,6 +1,6 @@
-# Contributing to VibeForge
+# Contributing to Bestek
 
-First off, thank you for considering contributing to VibeForge! It's people like you that make the open-source community such a fantastic place.
+First off, thank you for considering contributing to Bestek! It's people like you that make the open-source community such a fantastic place.
 
 ## Code of Conduct
 
@@ -10,7 +10,7 @@ This project and everyone participating in it is governed by our [Code of Conduc
 
 ### Reporting Bugs
 
-Before creating a bug report, please check the [existing issues](https://github.com/Farmeobaasje/vibeforge/issues) to see if the problem has already been reported. If it hasn't, create a new issue with:
+Before creating a bug report, please check the [existing issues](https://github.com/Farmeobaasje/bestek/issues) to see if the problem has already been reported. If it hasn't, create a new issue with:
 
 - A clear, descriptive title
 - Steps to reproduce the issue
@@ -20,7 +20,7 @@ Before creating a bug report, please check the [existing issues](https://github.
 
 ### Suggesting Enhancements
 
-Enhancement suggestions are tracked as [GitHub issues](https://github.com/Farmeobaasje/vibeforge/issues). When creating one:
+Enhancement suggestions are tracked as [GitHub issues](https://github.com/Farmeobaasje/bestek/issues). When creating one:
 
 - Use a clear and descriptive title
 - Provide a step-by-step description of the suggested enhancement
@@ -29,7 +29,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/Farmeo
 
 ### Adding Domain Templates
 
-VibeForge uses domain-specific templates to generate tailored project blueprints. To add a new domain:
+Bestek uses domain-specific templates to generate tailored project blueprints. To add a new domain:
 
 1. Open `src/semantic/domainTemplates.ts`
 2. Create a new `DomainTemplate` object following the existing pattern
@@ -50,8 +50,8 @@ To add a new AI provider:
 
 ```bash
 # Fork and clone the repository
-git clone https://github.com/your-username/vibeforge.git
-cd vibeforge
+git clone https://github.com/your-username/bestek.git
+cd bestek
 
 # Install dependencies
 npm ci
@@ -141,6 +141,6 @@ Examples:
 
 ## Questions?
 
-Feel free to open a [discussion](https://github.com/Farmeobaasje/vibeforge/discussions) or reach out via [Buy Me a Coffee](https://www.buymeacoffee.com/lynoa).
+Feel free to open a [discussion](https://github.com/Farmeobaasje/bestek/discussions) or reach out via [Buy Me a Coffee](https://www.buymeacoffee.com/lynoa).
 
 Thank you for contributing! 🚀

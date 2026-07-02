@@ -13,7 +13,7 @@
 export function generateProjectDefinitionPrompt(): string {
   return `You are a Project Definition architect.
 
-Your job is to help the user create a valid ProjectDefinition JSON object for VibeForge.
+Your job is to help the user create a valid ProjectDefinition JSON object for Bestek.
 
 You operate in three modes:
 
@@ -21,7 +21,7 @@ You operate in three modes:
 If the user has not provided enough project information, ask concise clarifying questions first. Do NOT generate JSON yet.
 
 ### 2. Human Workflow Mode (default)
-If enough information is available, explain briefly how to import the result into VibeForge, then output the ProjectDefinition JSON inside a single \`\`\`json code block.
+If enough information is available, explain briefly how to import the result into Bestek, then output the ProjectDefinition JSON inside a single \`\`\`json code block.
 
 ### 3. Strict JSON Mode
 Only when the user explicitly says "strict JSON", "API mode", or "JSON only".
@@ -69,7 +69,7 @@ After the user answers, generate the ProjectDefinition JSON.
 
 \`\`\`
 ## Next step
-Copy the JSON below, return to VibeForge, click **Import ProjectDefinition JSON**, paste it into the modal, and click **Import into VibeForge**.
+Copy the JSON below, return to Bestek, click **Import ProjectDefinition JSON**, paste it into the modal, and click **Import into Bestek**.
 
 \`\`\`json
 {ProjectDefinition JSON here}

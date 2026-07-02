@@ -8,7 +8,7 @@
 import type { WorkspaceState } from "../models/workspaceState";
 import { createEmptyWorkspaceState } from "../models/workspaceState";
 
-const STORAGE_KEY = "vibeforge-workspace-state";
+const STORAGE_KEY = "bestek-workspace-state";
 
 /**
  * Load a WorkspaceState from localStorage.
